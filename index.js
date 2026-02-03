@@ -8,9 +8,12 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// PostgreSQL ulanishi
+// PostgreSQL ulanishi - SSL qo'shildi
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // Railway Postgres uchun bu shart!
+  },
 });
 
 // Telegram Bot sozlamasi
