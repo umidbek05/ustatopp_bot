@@ -47,30 +47,37 @@ bot.hears(["🆕 Ro'yxatdan o'tish", "🔑 Parolni tiklash"], async (ctx) => {
 });
 
 // --- API MANTIQI (React uchun) ---
+// React-dan kelgan kodni tekshirish uchun API
 app.post("/api/verify-otp", async (req, res) => {
-  const { code, type } = req.body;
+  const { code, type } = req.body; // React-dan 'code' va 'type' (register yoki forget) keladi
 
   try {
+    // Bazadan ushbu kod va turga mos qatorni qidiramiz
     const result = await pool.query(
       "SELECT * FROM otps WHERE code = $1 AND type = $2",
       [code, type]
     );
 
     if (result.rows.length > 0) {
-      // Kod to'g'ri bo'lsa, xavfsizlik uchun uni o'chirib tashlaymiz
+      // Agar kod topilsa, uni bazadan o'chirib tashlaymiz (bir marta ishlatish uchun)
       await pool.query("DELETE FROM otps WHERE id = $1", [result.rows[0].id]);
 
-      return res
-        .status(200)
-        .json({ success: true, message: "Kod tasdiqlandi!" });
+      return res.status(200).json({
+        success: true,
+        message: "Kod muvaffaqiyatli tasdiqlandi!",
+      });
     } else {
-      return res
-        .status(400)
-        .json({ success: false, message: "Kod noto'g'ri yoki eskirgan!" });
+      // Agar kod topilmasa
+      return res.status(400).json({
+        success: false,
+        message: "Kod noto'g'ri yoki muddati o'tgan!",
+      });
     }
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server xatosi" });
+    console.error("Xatolik:", err);
+    res
+      .status(500)
+      .json({ success: false, message: "Serverda xatolik yuz berdi" });
   }
 });
 
